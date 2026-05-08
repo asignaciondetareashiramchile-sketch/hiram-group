@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hiram Group – Sistema de Gestión IA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary: #1E3A5F;
+  --primary-light: #2563EB;
+  --accent: #3B82F6;
+  --bg: #F0F4FF;
+  --card: #ffffff;
+  --border: #E2E8F0;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --urgent: #7C3AED;
+  --high: #DC2626;
+  --medium: #D97706;
+  --normal: #16A34A;
+  --sidebar-w: 260px;
+  --header-h: 64px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── LOGIN ── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0F2447 0%, #1E3A8A 50%, #1D4ED8 100%);
+}
+.login-card {
+  background: white; border-radius: 20px; padding: 48px 40px;
+  width: 400px; box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  animation: fadeUp .4s ease;
+}
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
+.login-logo p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+.login-logo .logo-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.form-group input {
+  width: 100%; padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 15px; transition: border .2s;
+}
+.form-group input:focus { outline: none; border-color: var(--primary-light); }
+.btn-login {
+  width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white; border: none; border-radius: 10px; font-size: 16px;
+  font-weight: 700; cursor: pointer; transition: opacity .2s;
+}
+.btn-login:hover { opacity: .9; }
+.login-error { background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 14px; display: none; }
+
+/* ── APP SHELL ── */
+#app { display: none; }
+.app-header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  display: flex; align-items: center; padding: 0 24px;
+  z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; flex: 1; }
+.header-brand .brand-icon { font-size: 28px; }
+.header-brand h1 { color: white; font-size: 18px; font-weight: 800; line-height: 1.2; }
+.header-brand p { color: #93C5FD; font-size: 11px; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-badge {
+  background: rgba(255,255,255,.15); color: white;
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.header-badge.alert { background: #DC2626; animation: pulse 2s infinite; }
+.btn-icon {
+  background: rgba(255,255,255,.15); color: white; border: none;
+  width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  transition: background .2s;
+}
+.btn-icon:hover { background: rgba(255,255,255,.25); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: var(--header-h); left: 0; bottom: 0;
+  width: var(--sidebar-w); background: white; border-right: 1px solid var(--border);
+  overflow-y: auto; z-index: 50; padding: 16px 0;
+}
+.sidebar-section { padding: 0 12px 8px; }
+.sidebar-label { font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .08em; padding: 8px 12px 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  border-radius: 8px; cursor: pointer; transition: all .15s;
+  font-size: 13.5px; font-weight: 500; color: var(--text-muted);
+  text-decoration: none; position: relative;
+}
+.nav-item:hover { background: var(--bg); color: var(--primary); }
+.nav-item.active { background: #EFF6FF; color: var(--primary-light); font-weight: 700; }
+.nav-item .nav-icon { width: 20px; text-align: center; font-size: 15px; }
+.nav-badge {
+  margin-left: auto; background: var(--high); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  min-width: 18px; text-align: center;
+}
+.nav-badge.yellow { background: var(--medium); }
+.nav-badge.purple { background: var(--urgent); }
+.nav-badge.green { background: var(--normal); }
+
+/* ── MAIN CONTENT ── */
+.main { margin-left: var(--sidebar-w); margin-top: var(--header-h); padding: 28px; min-height: calc(100vh - var(--header-h)); }
+
+/* ── VIEWS ── */
+.view { display: none; animation: fadeUp .3s ease; }
+.view.active { display: block; }
+
+/* ── PAGE HEADER ── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.page-title h2 { font-size: 22px; font-weight: 800; color: var(--primary); }
+.page-title p { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+
+/* ── STAT CARDS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.stat-card {
+  background: white; border-radius: 14px; padding: 20px 18px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.06); border: 1px solid var(--border);
+  cursor: pointer; transition: transform .15s, box-shadow .15s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+.stat-card .stat-value { font-size: 32px; font-weight: 800; line-height: 1; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+.stat-card .stat-icon { font-size: 22px; margin-bottom: 10px; }
+
+/* ── DEPARTMENT CARDS ── */
+.dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.dept-card {
+  background: white; border-radius: 14px; padding: 22px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.06); border: 1px solid var(--border);
+  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.dept-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.12); border-color: var(--accent); }
+.dept-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); }
+.dept-card.has-overdue::before { background: linear-gradient(90deg, var(--high), #EF4444); }
+.dept-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.dept-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 18px;
+}
+.dept-name { font-size: 15px; font-weight: 700; color: var(--primary); }
+.dept-email { font-size: 11px; color: var(--text-muted); }
+.dept-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.dept-stat { text-align: center; padding: 8px 4px; background: var(--bg); border-radius: 8px; }
+.dept-stat .num { font-size: 18px; font-weight: 800; }
+.dept-stat .lbl { font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+.dept-stat.overdue .num { color: var(--high); }
+.dept-stat.pending .num { color: var(--medium); }
+.dept-stat.completed .num { color: var(--normal); }
+.dept-stat.ai .num { color: var(--urgent); }
+.dept-actions { display: flex; gap: 8px; }
+.btn-sm {
+  padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; transition: all .15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--primary-light); color: white; }
+.btn-primary:hover { background: var(--primary); }
+.btn-secondary { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); color: var(--text); }
+.btn-danger { background: #FEF2F2; color: var(--high); border: 1px solid #FECACA; }
+.btn-danger:hover { background: var(--high); color: white; }
+.btn-purple { background: #F5F3FF; color: var(--urgent); border: 1px solid #DDD6FE; }
+.btn-purple:hover { background: var(--urgent); color: white; }
+.btn-success { background: #F0FDF4; color: var(--normal); border: 1px solid #BBF7D0; }
+.btn-success:hover { background: var(--normal); color: white; }
+.btn-lg {
+  padding: 11px 22px; border-radius: 10px; border: none; cursor: pointer;
+  font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+  transition: all .2s;
+}
+
+/* ── TASK TABLE ── */
+.task-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-select {
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px; background: white; color: var(--text); cursor: pointer;
+}
+.search-input {
+  padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px; width: 220px; background: white;
+}
+.search-input:focus, .filter-select:focus { outline: none; border-color: var(--accent); }
+
+.task-table { width: 100%; border-collapse: collapse; background: white;
+  border-radius: 12px; overflow: hidden; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+.task-table th {
+  background: var(--primary); color: white; padding: 12px 14px;
+  text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+.task-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+.task-table tr:last-child td { border-bottom: none; }
+.task-table tr:hover td { background: #F8FAFF; }
+.task-table tr.overdue td { background: #FFF5F5; }
+.task-table tr.overdue td:first-child { border-left: 3px solid var(--high); }
+
+.priority-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; color: white;
+  white-space: nowrap;
+}
+.status-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.status-pending { background: #FEF9C3; color: #854D0E; }
+.status-in_progress { background: #DBEAFE; color: #1D4ED8; }
+.status-completed { background: #DCFCE7; color: #15803D; }
+.status-overdue { background: #FEE2E2; color: #991B1B; }
+.status-needs_review { background: #FEF3C7; color: #92400E; }
+.status-ai_suggested { background: #F3E8FF; color: #6B21A8; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: white; border-radius: 16px; width: 580px; max-width: 95vw;
+  max-height: 90vh; overflow-y: auto;
+  transform: translateY(20px); transition: transform .2s;
+  box-shadow: 0 24px 64px rgba(0,0,0,.25);
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header {
+  padding: 22px 26px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 16px 16px 0 0;
+}
+.modal-header h3 { color: white; font-size: 17px; font-weight: 700; }
+.modal-close { background: rgba(255,255,255,.2); border: none; color: white;
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; }
+.modal-body { padding: 26px; }
+.modal-footer { padding: 16px 26px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ── FORM ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 14px; transition: border .2s; font-family: inherit;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--primary-light); }
+.field textarea { resize: vertical; min-height: 80px; }
+
+/* ── PRIORITY SELECTOR ── */
+.priority-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.priority-option { padding: 10px 6px; border-radius: 10px; border: 2px solid transparent;
+  cursor: pointer; text-align: center; transition: all .15s; }
+.priority-option input { display: none; }
+.priority-option .p-dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 6px; }
+.priority-option .p-name { font-size: 11px; font-weight: 700; }
+.priority-option .p-desc { font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+.priority-option:hover, .priority-option.selected { border-color: currentColor; background: #F8F9FF; }
+.priority-option.urgent { color: var(--urgent); }
+.priority-option.urgent .p-dot { background: var(--urgent); }
+.priority-option.urgent.selected { background: #F5F3FF; }
+.priority-option.high { color: var(--high); }
+.priority-option.high .p-dot { background: var(--high); }
+.priority-option.high.selected { background: #FFF5F5; }
+.priority-option.medium { color: var(--medium); }
+.priority-option.medium .p-dot { background: var(--medium); }
+.priority-option.medium.selected { background: #FFFBEB; }
+.priority-option.normal { color: var(--normal); }
+.priority-option.normal .p-dot { background: var(--normal); }
+.priority-option.normal.selected { background: #F0FDF4; }
+
+/* ── SUGGESTIONS ── */
+.suggestion-card {
+  background: white; border-radius: 12px; padding: 18px 20px;
+  border: 1px solid var(--border); margin-bottom: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05);
+  border-left: 4px solid var(--urgent);
+  animation: fadeUp .3s ease;
+}
+.suggestion-card .s-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.suggestion-card .s-agent { font-size: 11px; font-weight: 700; color: var(--urgent);
+  background: #F5F3FF; padding: 3px 10px; border-radius: 10px; }
+.suggestion-card .s-dept { font-size: 11px; color: var(--text-muted); }
+.suggestion-card h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.suggestion-card .s-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+.suggestion-card .s-reasoning {
+  font-size: 12px; color: var(--text-muted); background: var(--bg);
+  border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; font-style: italic;
+}
+.suggestion-card .s-actions { display: flex; gap: 8px; }
+
+/* ── CHAT ── */
+.chat-container { display: flex; flex-direction: column; height: 500px; background: white;
+  border-radius: 14px; border: 1px solid var(--border); overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+.chat-header { padding: 14px 18px; background: var(--primary);
+  color: white; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.chat-header .online-dot { width: 8px; height: 8px; background: #4ADE80;
+  border-radius: 50%; animation: pulse 2s infinite; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.chat-msg { max-width: 80%; }
+.chat-msg.user { align-self: flex-end; }
+.chat-msg.agent { align-self: flex-start; }
+.chat-bubble {
+  padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5;
+}
+.chat-msg.user .chat-bubble { background: var(--primary-light); color: white; border-radius: 14px 14px 4px 14px; }
+.chat-msg.agent .chat-bubble { background: var(--bg); color: var(--text); border-radius: 14px 14px 14px 4px; border: 1px solid var(--border); }
+.chat-msg .chat-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; text-transform: uppercase; }
+.chat-input-area { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-input {
+  flex: 1; padding: 10px 14px; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 13px; outline: none; font-family: inherit;
+}
+.chat-input:focus { border-color: var(--primary-light); }
+.chat-send { width: 40px; height: 40px; border-radius: 20px; background: var(--primary-light);
+  border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* ── AUDIT ── */
+.audit-row { display: flex; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border);
+  align-items: flex-start; font-size: 13px; }
+.audit-time { color: var(--text-muted); font-size: 11px; white-space: nowrap; min-width: 120px; }
+.audit-action { flex: 1; color: var(--text); }
+.audit-by { font-size: 11px; color: var(--primary-light); font-weight: 600; min-width: 80px; text-align: right; }
+
+/* ── TOAST ── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--primary); color: white; padding: 12px 18px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  animation: slideIn .3s ease; display: flex; align-items: center; gap: 10px; min-width: 260px;
+}
+.toast.success { background: #15803D; }
+.toast.error { background: var(--high); }
+.toast.warning { background: var(--medium); }
+
+/* ── HISTORY MODAL ── */
+.history-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary-light); margin-top: 6px; flex-shrink: 0; }
+.history-content { flex: 1; }
+.history-action { font-size: 13px; color: var(--text); }
+.history-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── BRAND PILLS ── */
+.brand-pill { display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; color: white; }
+
+/* ── UTILS ── */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state i { font-size: 48px; margin-bottom: 16px; opacity: .3; display: block; }
+.empty-state p { font-size: 15px; }
+.loading { text-align: center; padding: 40px; color: var(--text-muted); }
+.loading i { font-size: 24px; animation: spin 1s linear infinite; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform .3s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .dept-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .task-table { font-size: 12px; }
+}
+
+/* ── BRAND SELECTOR ── */
+.brand-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.brand-option {
+  padding: 12px; border: 2px solid var(--border); border-radius: 10px;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600;
+}
+.brand-option:hover { border-color: var(--accent); }
+.brand-option.selected { border-color: var(--primary-light); background: #EFF6FF; }
+.brand-option .brand-emoji { font-size: 22px; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">🏢</span>
+      <h1>Hiram Group</h1>
+      <p>Sistema de Gestión con Inteligencia Artificial</p>
+    </div>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="login()">
+      <i class="fas fa-sign-in-alt"></i> Ingresar al Sistema
+    </button>
+    <div class="login-error" id="login-error"></div>
+    <p style="text-align:center;margin-top:20px;font-size:11px;color:#94A3B8;">
+      Hiram Chile – ProClean Facilities · Sistema Interno v1.0
+    </p>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="brand-icon">🏢</span>
+      <div>
+        <h1>Hiram Chile – ProClean Facilities</h1>
+        <p>Sistema de Gestión Empresarial con IA · Hiram Group</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="header-badge" id="badge-overdue" style="display:none">
+        <i class="fas fa-exclamation-triangle"></i> <span id="overdue-count">0</span> Atrasadas
+      </span>
+      <span class="header-badge purple" id="badge-ai" style="display:none">
+        <i class="fas fa-robot"></i> <span id="ai-count">0</span> Sugerencias IA
+      </span>
+      <div style="color:white;font-size:12px;text-align:right;line-height:1.4;">
+        <div style="font-weight:700;" id="header-user">Admin</div>
+        <div style="opacity:.7;" id="header-date"></div>
+      </div>
+      <button class="btn-icon" onclick="logout()" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-label">Principal</div>
+    <div class="sidebar-section">
+      <a class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard">
+        <span class="nav-icon"><i class="fas fa-th-large"></i></span> Dashboard
+      </a>
+      <a class="nav-item" onclick="showView('tasks')" id="nav-tasks">
+        <span class="nav-icon"><i class="fas fa-tasks"></i></span> Todas las Tareas
+        <span class="nav-badge yellow" id="nav-badge-tasks" style="display:none">0</span>
+      </a>
+    </div>
+
+    <div class="sidebar-label">Departamentos</div>
+    <div class="sidebar-section" id="dept-nav"></div>
+
+    <div class="sidebar-label">IA & Control</div>
+    <div class="sidebar-section">
+      <a class="nav-item" onclick="showView('suggestions')" id="nav-suggestions">
+        <span class="nav-icon"><i class="fas fa-robot"></i></span> Sugerencias IA
+        <span class="nav-badge purple" id="nav-badge-ai" style="display:none">0</span>
+      </a>
+      <a class="nav-item" onclick="showView('chat')" id="nav-chat">
+        <span class="nav-icon"><i class="fas fa-comments"></i></span> Chat con Agentes
+      </a>
+      <a class="nav-item" onclick="showView('audit')" id="nav-audit">
+        <span class="nav-icon"><i class="fas fa-history"></i></span> Bitácora
+      </a>
+    </div>
+
+    <div class="sidebar-label">Administración</div>
+    <div class="sidebar-section">
+      <a class="nav-item" onclick="showView('areas')" id="nav-areas">
+        <span class="nav-icon"><i class="fas fa-building"></i></span> Áreas
+      </a>
+      <a class="nav-item" onclick="showView('users')" id="nav-users">
+        <span class="nav-icon"><i class="fas fa-user-cog"></i></span> Usuarios
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-th-large" style="color:var(--primary-light)"></i> Dashboard General</h2>
+          <p>Resumen de operaciones de Hiram Group · <span id="dash-date"></span></p>
+        </div>
+        <button class="btn-lg btn-primary" onclick="openCreateModal()">
+          <i class="fas fa-plus"></i> Nueva Tarea
+        </button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card" onclick="showView('tasks')">
+          <div class="stat-icon" style="color:#6366F1">📋</div>
+          <div class="stat-value" id="stat-total" style="color:#6366F1">–</div>
+          <div class="stat-label">Total Tareas</div>
+        </div>
+        <div class="stat-card" onclick="filterAndShow('pending')">
+          <div class="stat-icon" style="color:var(--medium)">⏳</div>
+          <div class="stat-value" id="stat-pending" style="color:var(--medium)">–</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-card" onclick="filterAndShow('in_progress')">
+          <div class="stat-icon" style="color:var(--primary-light)">⚙️</div>
+          <div class="stat-value" id="stat-inprogress" style="color:var(--primary-light)">–</div>
+          <div class="stat-label">En Gestión</div>
+        </div>
+        <div class="stat-card" onclick="filterAndShow('completed')">
+          <div class="stat-icon" style="color:var(--normal)">✅</div>
+          <div class="stat-value" id="stat-completed" style="color:var(--normal)">–</div>
+          <div class="stat-label">Realizadas</div>
+        </div>
+        <div class="stat-card" onclick="filterAndShow('overdue')">
+          <div class="stat-icon" style="color:var(--high)">⚠️</div>
+          <div class="stat-value" id="stat-overdue" style="color:var(--high)">–</div>
+          <div class="stat-label">Atrasadas</div>
+        </div>
+        <div class="stat-card" onclick="showView('suggestions')">
+          <div class="stat-icon" style="color:var(--urgent)">🤖</div>
+          <div class="stat-value" id="stat-ai" style="color:var(--urgent)">–</div>
+          <div class="stat-label">Sugerencias IA</div>
+        </div>
+      </div>
+
+      <!-- Brand breakdown -->
+      <div style="margin-bottom:24px;">
+        <h3 style="font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Rendimiento por Marca</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;" id="brand-stats"></div>
+      </div>
+
+      <h3 style="font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Áreas / Departamentos</h3>
+      <div class="dept-grid" id="dept-grid-dashboard"></div>
+    </div>
+
+    <!-- ALL TASKS -->
+    <div class="view" id="view-tasks">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-tasks" style="color:var(--primary-light)"></i> Tareas</h2>
+          <p id="tasks-dept-title">Todas las tareas del sistema</p>
+        </div>
+        <button class="btn-lg btn-primary" onclick="openCreateModal()">
+          <i class="fas fa-plus"></i> Nueva Tarea
+        </button>
+      </div>
+      <div class="task-filters">
+        <input class="search-input" type="text" placeholder="🔍 Buscar tarea..." id="task-search" oninput="renderTaskTable()">
+        <select class="filter-select" id="filter-status" onchange="renderTaskTable()">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente</option>
+          <option value="in_progress">En Gestión</option>
+          <option value="completed">Realizado</option>
+          <option value="overdue">Atrasado</option>
+          <option value="needs_review">Requiere Revisión</option>
+        </select>
+        <select class="filter-select" id="filter-priority" onchange="renderTaskTable()">
+          <option value="">Todas las prioridades</option>
+          <option value="urgent">Urgente</option>
+          <option value="high">Alta</option>
+          <option value="medium">Media</option>
+          <option value="normal">Normal</option>
+        </select>
+        <select class="filter-select" id="filter-brand" onchange="renderTaskTable()">
+          <option value="">Todas las marcas</option>
+        </select>
+        <button class="btn-sm btn-secondary" onclick="clearFilters()"><i class="fas fa-times"></i> Limpiar</button>
+      </div>
+      <div id="task-table-container"><div class="loading"><i class="fas fa-spinner"></i></div></div>
+    </div>
+
+    <!-- SUGGESTIONS -->
+    <div class="view" id="view-suggestions">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-robot" style="color:var(--urgent)"></i> Sugerencias de IA</h2>
+          <p>Tareas propuestas por los agentes – requieren aprobación</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <select class="filter-select" id="filter-sugg-dept" onchange="loadSuggestions()">
+            <option value="">Todos los departamentos</option>
+          </select>
+          <button class="btn-lg btn-purple" onclick="openGenerateModal()">
+            <i class="fas fa-magic"></i> Generar con IA
+          </button>
+        </div>
+      </div>
+      <div id="suggestions-container"><div class="loading"><i class="fas fa-spinner"></i></div></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="view" id="view-chat">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-comments" style="color:var(--primary-light)"></i> Chat con Agentes IA</h2>
+          <p>Consulta y coordina directamente con cada agente de área</p>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--text-muted);margin-right:10px;">Seleccionar Agente:</label>
+        <select class="filter-select" id="chat-dept-select" onchange="changeChatAgent()" style="width:280px;">
+          <option value="">– Selecciona un agente –</option>
+        </select>
+      </div>
+      <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+          <span class="online-dot"></span>
+          <span id="chat-agent-name">Selecciona un agente para comenzar</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="empty-state">
+            <i class="fas fa-robot"></i>
+            <p>Selecciona un departamento para chatear con su agente IA</p>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input class="chat-input" id="chat-input" placeholder="Escribe tu consulta..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+          <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="view" id="view-audit">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-history" style="color:var(--primary-light)"></i> Bitácora del Sistema</h2>
+          <p>Registro completo de todas las acciones realizadas</p>
+        </div>
+        <button class="btn-sm btn-secondary" onclick="loadAudit()"><i class="fas fa-sync"></i> Actualizar</button>
+      </div>
+      <div style="background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);">
+        <div id="audit-container"><div class="loading"><i class="fas fa-spinner"></i></div></div>
+      </div>
+    </div>
+
+    <!-- AREAS -->
+    <div class="view" id="view-areas">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-building" style="color:var(--primary-light)"></i> Gestión de Áreas</h2>
+          <p>Administra los departamentos y áreas del sistema</p>
+        </div>
+        <button class="btn-lg btn-primary" onclick="openAreaModal()"><i class="fas fa-plus"></i> Nueva Área</button>
+      </div>
+      <div id="areas-container"><div class="loading"><i class="fas fa-spinner"></i></div></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="view" id="view-users">
+      <div class="page-header">
+        <div class="page-title">
+          <h2><i class="fas fa-user-cog" style="color:var(--primary-light)"></i> Gestión de Usuarios</h2>
+          <p>Administra los accesos al sistema</p>
+        </div>
+        <button class="btn-lg btn-primary" onclick="openUserModal()"><i class="fas fa-plus"></i> Nuevo Usuario</button>
+      </div>
+      <div id="users-container"><div class="loading"><i class="fas fa-spinner"></i></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- CREATE TASK MODAL -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-plus-circle"></i> Nueva Tarea</h3>
+      <button class="modal-close" onclick="closeModal('modal-create')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Título de la Tarea *</label>
+        <input type="text" id="task-title" placeholder="Ej: Revisar contrato de limpieza – Edificio Sur">
+      </div>
+      <div class="field">
+        <label>Descripción / Instrucciones</label>
+        <textarea id="task-desc" placeholder="Describe en detalle qué se debe hacer, con quién contactar, qué documentos revisar, etc."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Área Responsable *</label>
+          <select id="task-dept">
+            <option value="">– Seleccionar área –</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Prioridad *</label>
+          <div class="priority-grid" id="priority-grid">
+            <div class="priority-option urgent" onclick="selectPriority('urgent', this)">
+              <div class="p-dot"></div>
+              <div class="p-name">Urgente</div>
+              <div class="p-desc">< 3 hrs hábiles</div>
+            </div>
+            <div class="priority-option high" onclick="selectPriority('high', this)">
+              <div class="p-dot"></div>
+              <div class="p-name">Alta</div>
+              <div class="p-desc">Mismo día</div>
+            </div>
+            <div class="priority-option medium selected" onclick="selectPriority('medium', this)">
+              <div class="p-dot"></div>
+              <div class="p-name">Media</div>
+              <div class="p-desc">3 días hábiles</div>
+            </div>
+            <div class="priority-option normal" onclick="selectPriority('normal', this)">
+              <div class="p-dot"></div>
+              <div class="p-name">Normal</div>
+              <div class="p-desc">5 días hábiles</div>
+            </div>
+          </div>
+          <input type="hidden" id="task-priority" value="medium">
+        </div>
+      </div>
+      <div class="field">
+        <label>Empresa / Marca Asociada *</label>
+        <div class="brand-grid" id="brand-grid-modal"></div>
+        <input type="hidden" id="task-brand">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="createTask()" id="btn-create-task">
+        <i class="fas fa-paper-plane"></i> Crear y Enviar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DETAIL MODAL -->
+<div class="modal-overlay" id="modal-task-detail">
+  <div class="modal" style="width:640px">
+    <div class="modal-header">
+      <h3><i class="fas fa-clipboard-list"></i> Detalle de Tarea</h3>
+      <button class="modal-close" onclick="closeModal('modal-task-detail')">×</button>
+    </div>
+    <div class="modal-body" id="task-detail-content"></div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-secondary" onclick="closeModal('modal-task-detail')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE AI MODAL -->
+<div class="modal-overlay" id="modal-generate">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-robot"></i> Generar Sugerencias con IA</h3>
+      <button class="modal-close" onclick="closeModal('modal-generate')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+        El agente IA analizará el contexto actual y generará tareas sugeridas para el departamento seleccionado. Las sugerencias deben ser aprobadas antes de enviarse.
+      </p>
+      <div class="form-row">
+        <div class="field">
+          <label>Departamento</label>
+          <select id="gen-dept"></select>
+        </div>
+        <div class="field">
+          <label>Empresa / Marca</label>
+          <select id="gen-brand"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Cantidad de sugerencias</label>
+        <select id="gen-count">
+          <option value="2">2 sugerencias</option>
+          <option value="3" selected>3 sugerencias</option>
+          <option value="5">5 sugerencias</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-secondary" onclick="closeModal('modal-generate')">Cancelar</button>
+      <button class="btn-sm btn-purple" onclick="generateSuggestions()" id="btn-generate">
+        <i class="fas fa-magic"></i> Generar con IA
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- AREA MODAL -->
+<div class="modal-overlay" id="modal-area">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-building"></i> <span id="area-modal-title">Nueva Área</span></h3>
+      <button class="modal-close" onclick="closeModal('modal-area')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-area-id" value="">
+      <div class="field"><label>Nombre del Área *</label><input type="text" id="area-name" placeholder="Ej: Logística"></div>
+      <div class="field"><label>Correo Electrónico *</label><input type="email" id="area-email" placeholder="logistica@poffice.cl"></div>
+      <div class="form-row">
+        <div class="field">
+          <label>Rol del Agente IA</label>
+          <input type="text" id="area-agent-role" placeholder="Logistics Manager">
+        </div>
+        <div class="field">
+          <label>Icono</label>
+          <select id="area-icon">
+            <option value="briefcase">Maletín</option>
+            <option value="users">Usuarios</option>
+            <option value="user-check">Usuario Verificado</option>
+            <option value="dollar-sign">Dólar</option>
+            <option value="trending-up">Tendencia</option>
+            <option value="file-text">Documento</option>
+            <option value="settings">Configuración</option>
+            <option value="megaphone">Megáfono</option>
+            <option value="headphones">Audífonos</option>
+            <option value="truck">Camión</option>
+            <option value="crown">Corona</option>
+            <option value="clipboard-list">Clipboard</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-secondary" onclick="closeModal('modal-area')">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="saveArea()"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus"></i> Nuevo Usuario</h3>
+      <button class="modal-close" onclick="closeModal('modal-user')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Usuario *</label><input type="text" id="new-username" placeholder="usuario123"></div>
+        <div class="field"><label>Contraseña *</label><input type="password" id="new-password" placeholder="••••••••"></div>
+      </div>
+      <div class="field"><label>Correo *</label><input type="email" id="new-email" placeholder="usuario@poffice.cl"></div>
+      <div class="form-row">
+        <div class="field">
+          <label>Rol</label>
+          <select id="new-role">
+            <option value="area">Área</option>
+            <option value="admin">Administrador</option>
+            <option value="readonly">Solo lectura</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Departamento</label>
+          <select id="new-dept-user"><option value="">– Sin departamento –</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="createUser()"><i class="fas fa-save"></i> Crear Usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let state = {
+  token: localStorage.getItem('hg_token'),
+  user: JSON.parse(localStorage.getItem('hg_user') || 'null'),
+  departments: [],
+  brands: [],
+  tasks: [],
+  stats: {},
+  chatHistory: {},
+  currentDeptFilter: null,
+  currentStatusFilter: '',
+};
+
+// ── API ────────────────────────────────────────────────────────────────────────
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+    },
+    credentials: 'include',
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (res.status === 401) { logout(); return null; }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);
+  return data;
+}
+
+// ── AUTH ───────────────────────────────────────────────────────────────────────
+async function login() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  if (!username || !password) { showLoginError('Ingresa usuario y contraseña'); return; }
+  try {
+    const data = await api('POST', '/api/auth/login', { username, password });
+    state.token = data.access_token;
+    state.user = data;
+    localStorage.setItem('hg_token', state.token);
+    localStorage.setItem('hg_user', JSON.stringify(data));
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  } catch (e) {
+    showLoginError(e.message || 'Credenciales incorrectas');
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function logout() {
+  api('POST', '/api/auth/logout').catch(() => {});
+  localStorage.removeItem('hg_token');
+  localStorage.removeItem('hg_user');
+  state.token = null;
+  state.user = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+async function initApp() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('header-date').textContent = dateStr;
+  document.getElementById('dash-date').textContent = dateStr;
+  document.getElementById('header-user').textContent = state.user?.username || 'Usuario';
+
+  await Promise.all([loadDepartments(), loadBrands()]);
+  buildDeptNav();
+  buildBrandSelectors();
+  populateDeptSelects();
+  await Promise.all([loadStats(), loadTasks()]);
+  renderDashboard();
+  setInterval(refreshBadges, 60000);
+}
+
+// ── DATA LOADERS ───────────────────────────────────────────────────────────────
+async function loadDepartments() {
+  state.departments = await api('GET', '/api/departments') || [];
+}
+
+async function loadBrands() {
+  state.brands = await api('GET', '/api/brands') || [];
+}
+
+async function loadStats() {
+  state.stats = await api('GET', '/api/stats') || {};
+  refreshBadges();
+}
+
+async function loadTasks() {
+  state.tasks = await api('GET', '/api/tasks') || [];
+}
+
+async function refreshBadges() {
+  await loadStats();
+  const overdue = state.stats.overdue || 0;
+  const ai = state.stats.ai_pending || 0;
+  const pending = (state.stats.pending || 0) + (state.stats.in_progress || 0);
+
+  const bo = document.getElementById('badge-overdue');
+  const ba = document.getElementById('badge-ai');
+  bo.style.display = overdue > 0 ? 'flex' : 'none';
+  ba.style.display = ai > 0 ? 'flex' : 'none';
+  document.getElementById('overdue-count').textContent = overdue;
+  document.getElementById('ai-count').textContent = ai;
+
+  const nb = document.getElementById('nav-badge-tasks');
+  nb.textContent = pending;
+  nb.style.display = pending > 0 ? 'inline-block' : 'none';
+
+  const nba = document.getElementById('nav-badge-ai');
+  nba.textContent = ai;
+  nba.style.display = ai > 0 ? 'inline-block' : 'none';
+
+  // Update stat cards
+  document.getElementById('stat-total').textContent = state.stats.total || 0;
+  document.getElementById('stat-pending').textContent = state.stats.pending || 0;
+  document.getElementById('stat-inprogress').textContent = state.stats.in_progress || 0;
+  document.getElementById('stat-completed').textContent = state.stats.completed || 0;
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-ai').textContent = ai;
+}
+
+// ── BUILDERS ───────────────────────────────────────────────────────────────────
+function buildDeptNav() {
+  const container = document.getElementById('dept-nav');
+  container.innerHTML = state.departments.map(d => `
+    <a class="nav-item" onclick="showDeptTasks(${d.id}, '${escHtml(d.name)}')" id="nav-dept-${d.id}">
+      <span class="nav-icon"><i class="fas fa-${d.icon || 'briefcase'}"></i></span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
+      ${d.stats?.overdue > 0 ? `<span class="nav-badge">${d.stats.overdue}</span>` : ''}
+    </a>
+  `).join('');
+}
+
+function buildBrandSelectors() {
+  // Modal brand grid
+  const grid = document.getElementById('brand-grid-modal');
+  grid.innerHTML = state.brands.map((b, i) => `
+    <div class="brand-option ${i === 0 ? 'selected' : ''}" onclick="selectBrand(${b.id}, this)" data-brand="${b.id}">
+      <span class="brand-emoji">${b.logo_emoji}</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${b.color}">${b.name}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${b.description}</div>
+      </div>
+    </div>
+  `).join('');
+  if (state.brands.length > 0) document.getElementById('task-brand').value = state.brands[0].id;
+
+  // Filter select
+  const fs = document.getElementById('filter-brand');
+  state.brands.forEach(b => {
+    const o = document.createElement('option');
+    o.value = b.id;
+    o.textContent = `${b.logo_emoji} ${b.name}`;
+    fs.appendChild(o);
+  });
+
+  // Gen modal
+  const gb = document.getElementById('gen-brand');
+  state.brands.forEach(b => {
+    const o = document.createElement('option');
+    o.value = b.id;
+    o.textContent = `${b.logo_emoji} ${b.name}`;
+    gb.appendChild(o);
+  });
+}
+
+function populateDeptSelects() {
+  const selects = ['task-dept', 'gen-dept', 'filter-sugg-dept', 'new-dept-user', 'chat-dept-select'];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const hasEmpty = sel.querySelector('option[value=""]');
+    if (!hasEmpty) sel.innerHTML = '<option value="">– Seleccionar –</option>';
+    state.departments.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      sel.appendChild(o);
+    });
+  });
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  // Brand stats
+  const brandContainer = document.getElementById('brand-stats');
+  if (state.stats.by_brand) {
+    brandContainer.innerHTML = state.stats.by_brand.map(b => {
+      const pct = b.total > 0 ? Math.round((b.completed / b.total) * 100) : 0;
+      return `
+      <div style="background:white;border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:22px">${b.emoji}</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:${b.color}">${b.name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${b.total} tareas · ${b.completed} realizadas</div>
+          </div>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+          <div style="background:${b.color};height:100%;width:${pct}%;border-radius:4px;transition:width .5s"></div>
+        </div>
+        <div style="text-align:right;font-size:11px;font-weight:700;color:${b.color};margin-top:4px">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Department grid
+  const grid = document.getElementById('dept-grid-dashboard');
+  grid.innerHTML = state.departments.map(d => `
+    <div class="dept-card ${d.stats?.overdue > 0 ? 'has-overdue' : ''}" onclick="showDeptTasks(${d.id}, '${escHtml(d.name)}')">
+      <div class="dept-header">
+        <div class="dept-icon"><i class="fas fa-${d.icon || 'briefcase'}"></i></div>
+        <div>
+          <div class="dept-name">${d.name}</div>
+          <div class="dept-email">${d.email}</div>
+        </div>
+      </div>
+      <div class="dept-stats">
+        <div class="dept-stat overdue">
+          <div class="num">${d.stats?.overdue || 0}</div>
+          <div class="lbl">Atrasadas</div>
+        </div>
+        <div class="dept-stat pending">
+          <div class="num">${d.stats?.pending || 0}</div>
+          <div class="lbl">Pendientes</div>
+        </div>
+        <div class="dept-stat completed">
+          <div class="num">${d.stats?.completed || 0}</div>
+          <div class="lbl">Realizadas</div>
+        </div>
+        <div class="dept-stat ai">
+          <div class="num">${d.stats?.ai_suggestions || 0}</div>
+          <div class="lbl">Sug. IA</div>
+        </div>
+      </div>
+      <div class="dept-actions">
+        <button class="btn-sm btn-primary" onclick="event.stopPropagation();openCreateModalForDept(${d.id})">
+          <i class="fas fa-plus"></i> Nueva
+        </button>
+        <button class="btn-sm btn-purple" onclick="event.stopPropagation();openGenerateForDept(${d.id})">
+          <i class="fas fa-robot"></i> IA
+        </button>
+        <button class="btn-sm btn-secondary" onclick="event.stopPropagation();openChatForDept(${d.id}, '${escHtml(d.name)}')">
+          <i class="fas fa-comments"></i> Chat
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`view-${name}`)?.classList.add('active');
+  document.getElementById(`nav-${name}`)?.classList.add('active');
+
+  if (name === 'tasks') { renderTaskTable(); }
+  if (name === 'suggestions') { loadSuggestions(); }
+  if (name === 'audit') { loadAudit(); }
+  if (name === 'users') { loadUsers(); }
+  if (name === 'areas') { loadAreas(); }
+  if (name === 'dashboard') { loadStats().then(renderDashboard); loadTasks(); }
+}
+
+function showDeptTasks(deptId, deptName) {
+  state.currentDeptFilter = deptId;
+  document.getElementById('tasks-dept-title').textContent = `Tareas de: ${deptName}`;
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-priority').value = '';
+  document.getElementById('filter-brand').value = '';
+  document.getElementById('task-search').value = '';
+  showView('tasks');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`nav-dept-${deptId}`)?.classList.add('active');
+}
+
+function filterAndShow(status) {
+  state.currentDeptFilter = null;
+  document.getElementById('filter-status').value = status;
+  document.getElementById('tasks-dept-title').textContent = 'Todas las tareas del sistema';
+  showView('tasks');
+}
+
+function clearFilters() {
+  state.currentDeptFilter = null;
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-priority').value = '';
+  document.getElementById('filter-brand').value = '';
+  document.getElementById('task-search').value = '';
+  document.getElementById('tasks-dept-title').textContent = 'Todas las tareas del sistema';
+  renderTaskTable();
+}
+
+// ── TASK TABLE ─────────────────────────────────────────────────────────────────
+function renderTaskTable() {
+  const search = document.getElementById('task-search').value.toLowerCase();
+  const statusF = document.getElementById('filter-status').value;
+  const priorityF = document.getElementById('filter-priority').value;
+  const brandF = document.getElementById('filter-brand').value;
+
+  let tasks = [...state.tasks];
+  if (state.currentDeptFilter) tasks = tasks.filter(t => t.department_id === state.currentDeptFilter);
+  if (statusF) tasks = tasks.filter(t => t.status === statusF);
+  if (priorityF) tasks = tasks.filter(t => t.priority === priorityF);
+  if (brandF) tasks = tasks.filter(t => t.brand_id === parseInt(brandF));
+  if (search) tasks = tasks.filter(t => (t.title + ' ' + (t.description||'') + ' ' + t.department_name).toLowerCase().includes(search));
+
+  const container = document.getElementById('task-table-container');
+  if (tasks.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay tareas que coincidan con los filtros</p></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="task-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tarea</th>
+          <th>Área</th>
+          <th>Marca</th>
+          <th>Prioridad</th>
+          <th>Estado</th>
+          <th>Vencimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tasks.map(t => `
+          <tr class="${t.is_overdue ? 'overdue' : ''}" onclick="showTaskDetail(${t.id})" style="cursor:pointer">
+            <td style="color:var(--text-muted);font-size:11px">${t.ticket_number || '#' + t.id}</td>
+            <td>
+              <div style="font-weight:600;color:var(--primary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(t.title)}">${escHtml(t.title)}</div>
+              ${t.ai_reasoning ? '<div style="font-size:10px;color:var(--urgent);">🤖 Sugerida por IA</div>' : ''}
+            </td>
+            <td style="font-size:12px">${escHtml(t.department_name)}</td>
+            <td><span class="brand-pill" style="background:${t.brand_color}">${escHtml(t.brand_name)}</span></td>
+            <td><span class="priority-badge" style="background:${t.priority_color}">${t.priority_label}</span></td>
+            <td><span class="status-badge status-${t.status}">${t.status_label}</span></td>
+            <td style="font-size:12px;${t.is_overdue ? 'color:var(--high);font-weight:700' : 'color:var(--text-muted)'}">${t.deadline}</td>
+            <td onclick="event.stopPropagation()">
+              <div style="display:flex;gap:4px;flex-wrap:wrap">
+                ${t.status !== 'completed' ? `
+                  <button class="btn-sm btn-success" onclick="quickStatus(${t.id},'completed')" title="Marcar realizado" style="padding:4px 8px;font-size:11px">✅</button>
+                  <button class="btn-sm btn-secondary" onclick="sendReminderBtn(${t.id})" title="Enviar recordatorio" style="padding:4px 8px;font-size:11px">🔔</button>
+                ` : ''}
+                <button class="btn-sm btn-danger" onclick="deleteTask(${t.id})" title="Eliminar" style="padding:4px 8px;font-size:11px">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="padding:12px 16px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);background:white">
+      Mostrando ${tasks.length} tarea${tasks.length !== 1 ? 's' : ''}
+    </div>`;
+}
+
+async function quickStatus(taskId, status) {
+  try {
+    await api('PUT', `/api/tasks/${taskId}`, { status });
+    await loadTasks();
+    renderTaskTable();
+    showToast('Estado actualizado', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function sendReminderBtn(taskId) {
+  try {
+    const r = await api('POST', `/api/tasks/${taskId}/reminder`);
+    showToast(r.sent ? 'Recordatorio enviado' : 'No se pudo enviar', r.sent ? 'success' : 'warning');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteTask(taskId) {
+  if (!confirm('¿Eliminar esta tarea?')) return;
+  try {
+    await api('DELETE', `/api/tasks/${taskId}`);
+    await loadTasks();
+    renderTaskTable();
+    showToast('Tarea eliminada', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function showTaskDetail(taskId) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  let history = [];
+  try { history = await api('GET', `/api/tasks/${taskId}/history`) || []; } catch(e) {}
+
+  let attachments = [];
+  try { attachments = await api('GET', `/api/tasks/${taskId}/attachments`) || []; } catch(e) {}
+
+  const content = document.getElementById('task-detail-content');
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <span class="priority-badge" style="background:${task.priority_color}">${task.priority_label}</span>
+      <span class="status-badge status-${task.status}">${task.status_label}</span>
+      ${task.ticket_number ? `<span style="font-size:12px;color:var(--text-muted)">🎫 ${task.ticket_number}</span>` : ''}
+    </div>
+    <h3 style="font-size:17px;color:var(--primary);margin-bottom:6px">${escHtml(task.title)}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;font-size:13px">
+      <div style="background:var(--bg);padding:10px;border-radius:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Área</div>
+        <div style="font-weight:600;color:var(--primary)">${escHtml(task.department_name)}</div>
+      </div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Marca</div>
+        <span class="brand-pill" style="background:${task.brand_color}">${escHtml(task.brand_name)}</span>
+      </div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Vencimiento</div>
+        <div style="font-weight:600;color:${task.is_overdue?'var(--high)':'var(--text)'}">${task.deadline}</div>
+      </div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Creada por</div>
+        <div>${escHtml(task.created_by)} · ${task.created_at}</div>
+      </div>
+    </div>
+    ${task.description ? `<div style="background:var(--bg);border-left:3px solid var(--primary-light);padding:14px;border-radius:0 8px 8px 0;margin-bottom:16px;font-size:13px;line-height:1.6">${escHtml(task.description)}</div>` : ''}
+    ${task.ai_reasoning ? `<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--urgent)"><strong>🤖 Razonamiento IA:</strong> ${escHtml(task.ai_reasoning)}</div>` : ''}
+
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+      ${task.status !== 'completed' ? `
+        <button class="btn-sm btn-primary" onclick="quickStatus(${task.id},'in_progress');closeModal('modal-task-detail')">⚙️ Gestionando</button>
+        <button class="btn-sm btn-success" onclick="quickStatus(${task.id},'completed');closeModal('modal-task-detail')">✅ Realizado</button>
+        <button class="btn-sm btn-secondary" onclick="quickStatus(${task.id},'needs_review');closeModal('modal-task-detail')">🔍 Revisión</button>
+        <button class="btn-sm btn-secondary" onclick="sendReminderBtn(${task.id})">🔔 Recordatorio</button>
+      ` : ''}
+    </div>
+
+    <hr class="divider">
+    <h4 style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">📎 Archivos Adjuntos</h4>
+    <div id="attachments-list" style="margin-bottom:12px">
+      ${attachments.length === 0 ? '<p style="color:var(--text-muted);font-size:13px">Sin archivos adjuntos</p>' : attachments.map(a => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <i class="fas fa-paperclip" style="color:var(--primary-light)"></i>
+          <a href="${a.url}" target="_blank" style="color:var(--primary-light);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(a.original_name)}</a>
+          <span style="color:var(--text-muted);font-size:11px">${a.file_size > 0 ? Math.round(a.file_size/1024) + ' KB' : ''}</span>
+          <span style="color:var(--text-muted);font-size:11px">${escHtml(a.uploaded_by)}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="file" id="file-upload-input" style="flex:1;font-size:13px;padding:4px">
+      <button class="btn-sm btn-primary" onclick="uploadFile(${task.id})"><i class="fas fa-upload"></i> Subir</button>
+    </div>
+
+    <hr class="divider">
+    <h4 style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">Historial</h4>
+    ${history.length === 0 ? '<p style="color:var(--text-muted);font-size:13px">Sin historial</p>' : history.map(h => `
+      <div class="history-item">
+        <div class="history-dot"></div>
+        <div class="history-content">
+          <div class="history-action">${escHtml(h.action)}</div>
+          <div class="history-meta">${escHtml(h.changed_by)} · ${h.timestamp}</div>
+        </div>
+      </div>
+    `).join('')}`;
+
+  openModal('modal-task-detail');
+}
+
+// ── TASK CREATION ──────────────────────────────────────────────────────────────
+function openCreateModal(deptId = null) {
+  if (deptId) document.getElementById('task-dept').value = deptId;
+  openModal('modal-create');
+}
+function openCreateModalForDept(deptId) { openCreateModal(deptId); }
+
+function selectPriority(value, el) {
+  document.querySelectorAll('.priority-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('task-priority').value = value;
+}
+
+function selectBrand(id, el) {
+  document.querySelectorAll('.brand-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('task-brand').value = id;
+}
+
+async function createTask() {
+  const title = document.getElementById('task-title').value.trim();
+  const desc = document.getElementById('task-desc').value.trim();
+  const deptId = parseInt(document.getElementById('task-dept').value);
+  const brandId = parseInt(document.getElementById('task-brand').value);
+  const priority = document.getElementById('task-priority').value;
+
+  if (!title) { showToast('El título es obligatorio', 'error'); return; }
+  if (!deptId) { showToast('Selecciona un área responsable', 'error'); return; }
+  if (!brandId) { showToast('Selecciona una marca', 'error'); return; }
+
+  const btn = document.getElementById('btn-create-task');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+
+  try {
+    const result = await api('POST', '/api/tasks', {
+      title, description: desc, department_id: deptId,
+      brand_id: brandId, priority, created_by: state.user?.username || 'admin'
+    });
+    closeModal('modal-create');
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    await loadTasks();
+    renderTaskTable();
+    await loadStats();
+    renderDashboard();
+    const ticket = result.ticket_number ? ` · Ticket: ${result.ticket_number}` : '';
+    showToast(`✅ Tarea creada${result.email_sent ? ' y correo enviado' : ''}${ticket}`, 'success');
+  } catch (e) {
+    showToast(e.message || 'Error al crear tarea', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Crear y Enviar';
+  }
+}
+
+// ── AI SUGGESTIONS ─────────────────────────────────────────────────────────────
+async function loadSuggestions() {
+  const deptId = document.getElementById('filter-sugg-dept').value;
+  const container = document.getElementById('suggestions-container');
+  container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i></div>';
+
+  try {
+    let url = '/api/suggestions?status=pending_approval';
+    if (deptId) url += `&department_id=${deptId}`;
+    const suggestions = await api('GET', url) || [];
+
+    if (suggestions.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i class="fas fa-robot"></i><p>No hay sugerencias pendientes de aprobación</p><button class="btn-sm btn-purple" style="margin-top:16px" onclick="openGenerateModal()"><i class="fas fa-magic"></i> Generar con IA</button></div>`;
+      return;
+    }
+
+    container.innerHTML = suggestions.map(s => `
+      <div class="suggestion-card">
+        <div class="s-header">
+          <span class="s-agent">${escHtml(s.agent_name || 'Agente IA')}</span>
+          <span class="s-dept">${escHtml(s.department_name)}</span>
+          <span class="brand-pill" style="background:${s.priority_color};margin-left:auto">${s.priority_label}</span>
+        </div>
+        <h4>${escHtml(s.title)}</h4>
+        <div class="s-desc">${escHtml(s.description)}</div>
+        ${s.reasoning ? `<div class="s-reasoning"><strong>💡 Razonamiento:</strong> ${escHtml(s.reasoning)}</div>` : ''}
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
+          ${escHtml(s.department_name)} · Marca: ${escHtml(s.brand_name)} · ${s.created_at}
+        </div>
+        <div class="s-actions">
+          <button class="btn-sm btn-success" onclick="actionSuggestion(${s.id},'approve')">
+            <i class="fas fa-check"></i> Aprobar y Crear Tarea
+          </button>
+          <button class="btn-sm btn-danger" onclick="actionSuggestion(${s.id},'reject')">
+            <i class="fas fa-times"></i> Rechazar
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><p>Error al cargar sugerencias</p></div>`;
+  }
+}
+
+async function actionSuggestion(id, action) {
+  try {
+    const result = await api('POST', `/api/suggestions/${id}/action`, { action });
+    showToast(action === 'approve' ? `✅ Tarea creada #${result.task_id}` : '❌ Sugerencia rechazada',
+              action === 'approve' ? 'success' : 'warning');
+    await loadSuggestions();
+    await loadStats();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function openGenerateModal() { openModal('modal-generate'); }
+function openGenerateForDept(deptId) {
+  document.getElementById('gen-dept').value = deptId;
+  openModal('modal-generate');
+}
+
+async function generateSuggestions() {
+  const deptId = parseInt(document.getElementById('gen-dept').value);
+  const brandId = parseInt(document.getElementById('gen-brand').value);
+  const count = parseInt(document.getElementById('gen-count').value);
+
+  if (!deptId || !brandId) { showToast('Selecciona departamento y marca', 'error'); return; }
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando con IA...';
+
+  try {
+    const result = await api('POST', '/api/suggestions/generate', { department_id: deptId, brand_id: brandId, count });
+    closeModal('modal-generate');
+    showToast(`🤖 ${result.created} sugerencias generadas`, 'success');
+    showView('suggestions');
+    await loadSuggestions();
+    await loadStats();
+  } catch (e) {
+    showToast(e.message || 'Error al generar sugerencias', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-magic"></i> Generar con IA';
+  }
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────────
+let chatConversation = [];
+
+function changeChatAgent() {
+  const sel = document.getElementById('chat-dept-select');
+  const name = sel.options[sel.selectedIndex]?.text;
+  document.getElementById('chat-agent-name').textContent = name ? `Agente ${name}` : 'Selecciona un agente';
+  chatConversation = [];
+  document.getElementById('chat-messages').innerHTML = `
+    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">
+      <div style="font-size:32px;margin-bottom:12px">🤖</div>
+      <strong>Agente ${name || ''}</strong><br>
+      <span>Hola, soy tu agente IA para el área ${name || ''}. ¿En qué puedo ayudarte?</span>
+    </div>`;
+}
+
+function openChatForDept(deptId, deptName) {
+  document.getElementById('chat-dept-select').value = deptId;
+  changeChatAgent();
+  showView('chat');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-chat')?.classList.add('active');
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  const deptSel = document.getElementById('chat-dept-select');
+  const deptId = deptSel.value;
+  const deptName = deptSel.options[deptSel.selectedIndex]?.text;
+
+  if (!msg || !deptId) {
+    if (!deptId) showToast('Selecciona un agente primero', 'warning');
+    return;
+  }
+
+  input.value = '';
+  addChatMessage('user', msg, 'Tú');
+  chatConversation.push({ role: 'user', content: msg });
+
+  const typingId = 'typing-' + Date.now();
+  addChatMessage('agent', '<i class="fas fa-spinner fa-spin"></i> Escribiendo...', deptName, typingId);
+
+  try {
+    const res = await api('POST', '/api/chat', {
+      message: msg,
+      department_name: deptName,
+      history: chatConversation.slice(-10),
+    });
+    document.getElementById(typingId)?.remove();
+    addChatMessage('agent', res.response, `Agente ${deptName}`);
+    chatConversation.push({ role: 'assistant', content: res.response });
+  } catch (e) {
+    document.getElementById(typingId)?.remove();
+    addChatMessage('agent', '⚠️ Error al conectar con el agente. Verifica tu ANTHROPIC_API_KEY en el archivo .env', `Agente ${deptName}`);
+  }
+}
+
+function addChatMessage(role, text, label, id = null) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  if (id) div.id = id;
+  div.innerHTML = `
+    <div class="chat-label">${label}</div>
+    <div class="chat-bubble">${text.replace(/\n/g, '<br>')}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── AUDIT ──────────────────────────────────────────────────────────────────────
+async function loadAudit() {
+  const container = document.getElementById('audit-container');
+  try {
+    const logs = await api('GET', '/api/audit?limit=200') || [];
+    if (logs.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No hay registros en la bitácora</p></div>';
+      return;
+    }
+    container.innerHTML = logs.map(l => `
+      <div class="audit-row">
+        <div class="audit-time">
+          <i class="fas fa-clock" style="margin-right:4px;opacity:.5"></i>${l.timestamp}
+        </div>
+        <div class="audit-action">
+          <span style="background:var(--bg);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;color:var(--primary-light);margin-right:8px">${l.entity_type || 'sistema'}</span>
+          ${escHtml(l.action)}
+          ${l.details ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">${escHtml(l.details)}</div>` : ''}
+        </div>
+        <div class="audit-by">${escHtml(l.performed_by)}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><p>Error al cargar bitácora (requiere rol administrador)</p></div>';
+  }
+}
+
+// ── USERS ──────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const container = document.getElementById('users-container');
+  try {
+    const users = await api('GET', '/api/users') || [];
+    container.innerHTML = `
+      <table class="task-table">
+        <thead><tr><th>ID</th><th>Usuario</th><th>Email</th><th>Rol</th><th>Departamento</th><th>Creado</th></tr></thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td style="color:var(--text-muted)">${u.id}</td>
+              <td><strong>${escHtml(u.username)}</strong></td>
+              <td>${escHtml(u.email)}</td>
+              <td><span class="status-badge ${u.role === 'admin' ? 'status-in_progress' : 'status-pending'}">${u.role}</span></td>
+              <td>${u.department_id ? (state.departments.find(d => d.id === u.department_id)?.name || u.department_id) : '–'}</td>
+              <td style="color:var(--text-muted);font-size:12px">${u.created_at || '–'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><p>Error al cargar usuarios (requiere rol administrador)</p></div>';
+  }
+}
+
+function openUserModal() { openModal('modal-user'); }
+
+async function createUser() {
+  const username = document.getElementById('new-username').value.trim();
+  const password = document.getElementById('new-password').value;
+  const email = document.getElementById('new-email').value.trim();
+  const role = document.getElementById('new-role').value;
+  const deptId = document.getElementById('new-dept-user').value || null;
+
+  if (!username || !password || !email) { showToast('Completa todos los campos obligatorios', 'error'); return; }
+
+  try {
+    await api('POST', '/api/users', { username, password, email, role, department_id: deptId ? parseInt(deptId) : null });
+    closeModal('modal-user');
+    loadUsers();
+    showToast('Usuario creado correctamente', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── FILE UPLOAD ─────────────────────────────────────────────────────────────────
+async function uploadFile(taskId) {
+  const input = document.getElementById('file-upload-input');
+  if (!input.files || !input.files[0]) { showToast('Selecciona un archivo', 'error'); return; }
+
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+
+  try {
+    const res = await fetch(`/api/tasks/${taskId}/attachments`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${state.token}` },
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Error al subir archivo');
+    const data = await res.json();
+    showToast(`✅ Archivo subido: ${data.original_name}`, 'success');
+    showTaskDetail(taskId);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── AREAS MANAGEMENT ────────────────────────────────────────────────────────────
+async function loadAreas() {
+  const container = document.getElementById('areas-container');
+  try {
+    const areas = await api('GET', '/api/areas') || [];
+    container.innerHTML = `
+      <table class="task-table">
+        <thead><tr><th>ID</th><th>Icono</th><th>Nombre</th><th>Email</th><th>Agente IA</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${areas.map(a => `
+            <tr>
+              <td style="color:var(--text-muted)">${a.id}</td>
+              <td style="font-size:20px"><i class="fas fa-${a.icon || 'briefcase'}"></i></td>
+              <td><strong>${escHtml(a.name)}</strong></td>
+              <td>${escHtml(a.email)}</td>
+              <td style="color:var(--text-muted);font-size:12px">${a.agent_role || '–'}</td>
+              <td>
+                <button class="btn-sm btn-secondary" onclick="editArea(${a.id})" style="padding:4px 8px;font-size:11px">✏️</button>
+                <button class="btn-sm btn-danger" onclick="deleteArea(${a.id})" style="padding:4px 8px;font-size:11px">🗑</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><p>Error al cargar áreas</p></div>';
+  }
+}
+
+function openAreaModal() {
+  document.getElementById('area-modal-title').textContent = 'Nueva Área';
+  document.getElementById('edit-area-id').value = '';
+  document.getElementById('area-name').value = '';
+  document.getElementById('area-email').value = '';
+  document.getElementById('area-agent-role').value = '';
+  document.getElementById('area-icon').value = 'briefcase';
+  openModal('modal-area');
+}
+
+async function editArea(areaId) {
+  const areas = await api('GET', '/api/areas') || [];
+  const area = areas.find(a => a.id === areaId);
+  if (!area) { showToast('Área no encontrada', 'error'); return; }
+  document.getElementById('area-modal-title').textContent = 'Editar Área';
+  document.getElementById('edit-area-id').value = area.id;
+  document.getElementById('area-name').value = area.name;
+  document.getElementById('area-email').value = area.email;
+  document.getElementById('area-agent-role').value = area.agent_role || '';
+  document.getElementById('area-icon').value = area.icon || 'briefcase';
+  openModal('modal-area');
+}
+
+async function saveArea() {
+  const id = document.getElementById('edit-area-id').value;
+  const name = document.getElementById('area-name').value.trim();
+  const email = document.getElementById('area-email').value.trim();
+  const agentRole = document.getElementById('area-agent-role').value.trim();
+  const icon = document.getElementById('area-icon').value;
+
+  if (!name || !email) { showToast('Nombre y email son obligatorios', 'error'); return; }
+
+  try {
+    if (id) {
+      await api('PUT', `/api/areas/${id}`, { name, email, agent_role: agentRole || null, icon });
+      showToast('✅ Área actualizada', 'success');
+    } else {
+      await api('POST', '/api/areas', { name, email, agent_role: agentRole || null, icon });
+      showToast('✅ Área creada', 'success');
+    }
+    closeModal('modal-area');
+    await loadAreas();
+    await loadDepartments();
+    buildDeptNav();
+    populateDeptSelects();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteArea(areaId) {
+  if (!confirm('¿Eliminar esta área definitivamente?')) return;
+  try {
+    await api('DELETE', `/api/areas/${areaId}`);
+    showToast('🗑 Área eliminada', 'success');
+    await loadAreas();
+    await loadDepartments();
+    buildDeptNav();
+    populateDeptSelects();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'all .3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── BOOT ───────────────────────────────────────────────────────────────────────
+if (state.token && state.user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initApp();
+}
+</script>
+</body>
+</html>
