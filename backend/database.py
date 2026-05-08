@@ -31,4 +31,18 @@ def get_db():
 
 def init_db():
     from backend.models import Base as ModelsBase
+
+    if DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://"):
+        with engine.connect() as conn:
+            conn.exec_driver_sql("DROP TABLE IF EXISTS alembic_version CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS audit_logs CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS ai_suggestions CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS task_history CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS attachments CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS tasks CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS brands CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS users CASCADE")
+            conn.exec_driver_sql("DROP TABLE IF EXISTS departments CASCADE")
+            conn.commit()
+
     ModelsBase.metadata.create_all(bind=engine)
